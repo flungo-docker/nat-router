@@ -1,0 +1,29 @@
+*filter
+:INPUT DROP [0:0]
+:FORWARD DROP [0:0]
+:OUTPUT DROP [0:0]
+
+-A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+-A INPUT -p icmp -j ACCEPT
+-A INPUT -i lo -j ACCEPT
+
+-A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+# Don't forward packets from lo or eth0
+-A FORWARD -i lo -j RETURN
+-A FORWARD -i eth0 -j RETURN
+# Only forward traffic to WAN
+-A FORWARD -o eth0 -j ACCEPT
+
+-A OUTPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+-A OUTPUT -p icmp -j ACCEPT
+-A OUTPUT -o lo -j ACCEPT
+
+COMMIT
+
+*nat
+:PREROUTING ACCEPT [0:0]
+:INPUT ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+:POSTROUTING ACCEPT [0:0]
+-A POSTROUTING -o eth0 -j MASQUERADE
+COMMIT
